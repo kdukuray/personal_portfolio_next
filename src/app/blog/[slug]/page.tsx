@@ -1,4 +1,4 @@
-import { fetchBlogPostBySlugServer, fetchPublishedBlogPostsServer, fetchProfileServer } from "@/lib/api-server";
+import { fetchBlogPostBySlugServer, fetchPublishedBlogSlugsStatic, fetchProfileServer } from "@/lib/api-server";
 import { markdownToHTML } from "@/data/blog";
 import { formatDate } from "@/lib/utils";
 import type { Metadata } from "next";
@@ -11,8 +11,8 @@ import { Suspense } from "react";
  * @returns Array of slug params for each published post.
  */
 export async function generateStaticParams() {
-  const posts = await fetchPublishedBlogPostsServer();
-  return posts.map((post) => ({ slug: post.slug }));
+  const slugs = await fetchPublishedBlogSlugsStatic();
+  return slugs.map((row) => ({ slug: row.slug }));
 }
 
 /**

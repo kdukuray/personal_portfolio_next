@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createStaticClient } from "@/lib/supabase/static";
 import type {
   Profile,
   SocialLink,
@@ -186,4 +187,26 @@ export async function getCurrentUserServer() {
     data: { user },
   } = await supabase.auth.getUser();
   return user;
+}
+
+// ─────────────────────────────────────────────
+// Static / build-time helpers (no cookies required)
+// ─────────────────────────────────────────────
+
+/**
+ * Fetches all published blog post slugs using a cookieless client.
+ * Safe to call at build time in generateStaticParams where cookies()
+ * is not available.
+ * @returns Array of objects containing the slug of each published post.
+ */
+export async function fetchPublishedBlogSlugsStatic(): Promise<
+  { slug: string }[]
+> {
+  const supabase = createStaticClient();
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .select("slug")
+    .eq("is_published", true);
+  if (error) return [];
+  return (data as { slug: string }[]) ?? [];
 }
