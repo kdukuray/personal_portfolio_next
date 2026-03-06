@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     template: `%s | ${DATA.name}`,
   },
   description: DATA.description,
-  icons: {icon: "/favicon.ico"},
+  icons: { icon: "/favicon.ico" },
   openGraph: {
     title: `${DATA.name}`,
     description: DATA.description,
@@ -49,6 +49,11 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Root layout component wrapping all pages.
+ * Provides theme, tooltips, and the bottom dock navbar.
+ * Uses Inter font and Tailwind styling with CSS variable theming.
+ */
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -58,7 +63,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          "min-h-screen bg-background font-sans antialiased max-w-2xl mx-auto py-12 sm:py-24 px-6",
+          "min-h-screen bg-background font-sans antialiased",
           fontSans.variable
         )}
       >

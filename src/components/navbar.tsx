@@ -1,3 +1,8 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Dock, DockIcon } from "@/components/magicui/dock";
 import { ModeToggle } from "@/components/mode-toggle";
 import { buttonVariants } from "@/components/ui/button";
@@ -9,9 +14,40 @@ import {
 } from "@/components/ui/tooltip";
 import { DATA } from "@/data/resume";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import { UserCircle } from "lucide-react";
 
+/**
+ * Bottom dock-style navigation bar.
+ * Shows nav links, social links, theme toggle, and a profile icon when logged in.
+ * The dock uses a macOS-style hover magnification animation.
+ */
 export default function Navbar() {
+  const pathname = usePathname();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Hide the dock navbar on dashboard and auth pages
+  const isDashboard = pathname?.startsWith("/dashboard");
+  const isAuthPage = pathname === "/login";
+
+  useEffect(() => {
+    /** Check if the user is authenticated on mount. */
+    async function checkAuth() {
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        setIsLoggedIn(!!user);
+      } catch {
+        setIsLoggedIn(false);
+      }
+    }
+    checkAuth();
+  }, []);
+
+  if (isDashboard || isAuthPage) return null;
+
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto mb-4 flex origin-bottom h-full max-h-14">
       <div className="fixed bottom-0 inset-x-0 h-16 w-full bg-background to-transparent backdrop-blur-lg [-webkit-mask-image:linear-gradient(to_top,black,transparent)] dark:bg-background"></div>
@@ -70,6 +106,29 @@ export default function Navbar() {
             </TooltipContent>
           </Tooltip>
         </DockIcon>
+        {isLoggedIn && (
+          <>
+            <Separator orientation="vertical" className="h-full py-2" />
+            <DockIcon>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    href="/dashboard"
+                    className={cn(
+                      buttonVariants({ variant: "ghost", size: "icon" }),
+                      "size-12"
+                    )}
+                  >
+                    <UserCircle className="size-4" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Dashboard</p>
+                </TooltipContent>
+              </Tooltip>
+            </DockIcon>
+          </>
+        )}
       </Dock>
     </div>
   );

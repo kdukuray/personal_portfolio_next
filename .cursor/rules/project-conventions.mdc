@@ -1,0 +1,72 @@
+---
+description: Core project conventions for styling, code organization, documentation, and Supabase usage
+alwaysApply: true
+---
+
+# Project Conventions
+
+## Styling
+
+- Use **Tailwind CSS** and **shadcn/ui** as the preferred methods of styling.
+- Avoid inline style objects and raw CSS files unless absolutely necessary.
+- Prefer shadcn/ui components over building custom UI primitives.
+
+## Comments & Documentation
+
+- Add a descriptive comment next to **every function** explaining its purpose, parameters, and return value.
+- Provide comments and documentation throughout the codebase so that any new contributor can quickly understand the code.
+
+```typescript
+// ❌ BAD
+export function calcTotal(items: CartItem[]) {
+  return items.reduce((sum, i) => sum + i.price * i.qty, 0);
+}
+
+// ✅ GOOD
+/**
+ * Calculates the total price of all items in the cart.
+ * @param items - Array of cart items with price and quantity.
+ * @returns The summed total price.
+ */
+export function calcTotal(items: CartItem[]): number {
+  return items.reduce((sum, item) => sum + item.price * item.qty, 0);
+}
+```
+
+## Type Definitions
+
+- All shared TypeScript types and interfaces **must** live in `src/lib/types.ts`.
+- Do not define types inline in components; import them from `types.ts`.
+
+## API / Supabase Access
+
+- All Supabase calls and API wrapper functions **must** be defined in `src/lib/api.ts`.
+- **Never** call Supabase directly inside components.
+- Components should import and call the wrapper functions from `api.ts`.
+
+```typescript
+// ❌ BAD — Supabase called directly in a component
+const { data } = await supabase.from("posts").select("*");
+
+// ✅ GOOD — Wrapper in src/lib/api.ts
+/** Fetches all posts from the posts table. */
+export async function fetchPosts(): Promise<Post[]> {
+  const { data, error } = await supabase.from("posts").select("*");
+  if (error) throw new Error(error.message);
+  return data as Post[];
+}
+
+// ✅ GOOD — Component calls the wrapper
+import { fetchPosts } from "@/lib/api";
+const posts = await fetchPosts();
+```
+
+## File Organization Summary
+
+| Concern | Location |
+|---------|----------|
+| Shared types & interfaces | `src/lib/types.ts` |
+| Supabase / API wrappers | `src/lib/api.ts` |
+| Utility helpers | `src/lib/utils.ts` |
+
+always keep website security in mind where applicable
