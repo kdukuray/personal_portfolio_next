@@ -42,6 +42,15 @@ Built with next.js, [shadcn/ui](https://ui.shadcn.com/), and [magic ui](https://
 
 5. Open the [Config file](./src/data/resume.tsx) and make changes
 
+# Supabase
+
+Content (profile, work experience, education, skills, projects, hackathons, blog) lives in Supabase Postgres; the schema is in [`supabase-setup.sql`](./supabase-setup.sql). Run that file in the Supabase SQL editor to create or migrate the tables — it is idempotent.
+
+Notes on `work_experience`:
+
+- `display_order` — position on the homepage. Managed from the dashboard's Work page via the up/down arrows; orders are automatically kept as a clean `0..n-1` sequence.
+- `is_active` — toggled from the dashboard's Work page. Inactive jobs stay in the database but are hidden from visitors on the public homepage.
+
 # License
 
 Licensed under the [MIT license](https://github.com/dillionverma/portfolio/blob/main/LICENSE.md).

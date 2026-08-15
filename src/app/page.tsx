@@ -31,7 +31,13 @@ export default async function Page() {
   const useDb = !!profile;
 
   const socialLinks = useDb ? await fetchSocialLinksServer(profile!.id) : [];
-  const workItems = useDb ? await fetchWorkExperienceServer(profile!.id) : [];
+  // Inactive jobs are hidden from visitors (is_active !== false also keeps
+  // rows visible if the column hasn't been added to the database yet).
+  const workItems = useDb
+    ? (await fetchWorkExperienceServer(profile!.id)).filter(
+        (w) => w.is_active !== false
+      )
+    : [];
   const educationItems = useDb ? await fetchEducationServer(profile!.id) : [];
   const skillItems = useDb ? await fetchSkillsServer(profile!.id) : [];
   const projectItems = useDb ? await fetchProjectsServer(profile!.id) : [];

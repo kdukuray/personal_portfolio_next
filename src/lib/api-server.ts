@@ -66,7 +66,8 @@ export async function fetchWorkExperienceServer(
     .from("work_experience")
     .select("*")
     .eq("profile_id", profileId)
-    .order("display_order", { ascending: true });
+    .order("display_order", { ascending: true })
+    .order("id", { ascending: true });
   if (error) return [];
   return data as WorkExperience[];
 }

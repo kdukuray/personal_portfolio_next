@@ -39,6 +39,7 @@ export interface WorkExperience {
   end_date: string;
   description: string;
   badges: string[];
+  is_active: boolean;
   display_order: number;
 }
 

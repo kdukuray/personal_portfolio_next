@@ -33,7 +33,17 @@ import {
   uploadMedia,
 } from "@/lib/api";
 import type { WorkExperience } from "@/lib/types";
-import { Pencil, Trash2, Plus, Loader2, Upload, Briefcase } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import {
+  Pencil,
+  Trash2,
+  Plus,
+  Loader2,
+  Upload,
+  Briefcase,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
 
 /**
  * Dashboard page for managing work experience entries.
@@ -61,7 +71,7 @@ export default function WorkExperiencePage() {
   const [descriptionField, setDescriptionField] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [badges, setBadges] = useState("");
-  const [displayOrder, setDisplayOrder] = useState(0);
+  const [reordering, setReordering] = useState(false);
 
   /** Loads work experience data from the database. */
   const loadData = useCallback(async () => {
@@ -95,7 +105,6 @@ export default function WorkExperiencePage() {
     setDescriptionField("");
     setLogoUrl("");
     setBadges("");
-    setDisplayOrder(items.length);
     setModalOpen(true);
   }
 
@@ -114,7 +123,6 @@ export default function WorkExperiencePage() {
     setDescriptionField(item.description);
     setLogoUrl(item.logo_url);
     setBadges(item.badges?.join(", ") || "");
-    setDisplayOrder(item.display_order);
     setModalOpen(true);
   }
 
@@ -136,12 +144,16 @@ export default function WorkExperiencePage() {
           .split(",")
           .map((b) => b.trim())
           .filter(Boolean),
-        display_order: displayOrder,
       };
       if (editing) {
+        // Order and active state are managed from the list, not the form.
         await updateWorkExperience(editing.id, input);
       } else {
-        await createWorkExperience(profileId, input);
+        await createWorkExperience(profileId, {
+          ...input,
+          is_active: true,
+          display_order: items.length,
+        });
       }
       await loadData();
       setModalOpen(false);
@@ -157,11 +169,69 @@ export default function WorkExperiencePage() {
     if (!deleting) return;
     try {
       await deleteWorkExperience(deleting.id);
+      // Close the gap left by the deleted entry so orders stay 0..n-1.
+      const remaining = items.filter((i) => i.id !== deleting.id);
+      await Promise.all(
+        remaining.flatMap((item, index) =>
+          item.display_order === index
+            ? []
+            : [updateWorkExperience(item.id, { display_order: index })]
+        )
+      );
       await loadData();
     } catch (error) {
       console.error("Failed to delete:", error);
     } finally {
       setDeleting(null);
+    }
+  }
+
+  /**
+   * Moves an entry one position up or down and persists a normalized
+   * 0..n-1 display_order for every entry that shifted. Normalizing on
+   * every move also repairs duplicate or gappy orders left over from
+   * manual numbering.
+   * @param index - The entry's current position in the list.
+   * @param direction - -1 to move up, 1 to move down.
+   */
+  async function handleMove(index: number, direction: -1 | 1) {
+    const target = index + direction;
+    if (target < 0 || target >= items.length || reordering) return;
+    const reorderedItems = [...items];
+    const [moved] = reorderedItems.splice(index, 1);
+    reorderedItems.splice(target, 0, moved);
+    setItems(reorderedItems.map((item, i) => ({ ...item, display_order: i })));
+    setReordering(true);
+    try {
+      await Promise.all(
+        reorderedItems.flatMap((item, i) =>
+          item.display_order === i
+            ? []
+            : [updateWorkExperience(item.id, { display_order: i })]
+        )
+      );
+    } catch (error) {
+      console.error("Failed to reorder:", error);
+      await loadData();
+    } finally {
+      setReordering(false);
+    }
+  }
+
+  /**
+   * Toggles whether an entry is shown on the public site.
+   * @param item - The work experience entry to toggle.
+   */
+  async function handleToggleActive(item: WorkExperience) {
+    const nextActive = !item.is_active;
+    setItems((prev) =>
+      prev.map((i) => (i.id === item.id ? { ...i, is_active: nextActive } : i))
+    );
+    try {
+      await updateWorkExperience(item.id, { is_active: nextActive });
+    } catch (error) {
+      console.error("Failed to toggle active state:", error);
+      await loadData();
     }
   }
 
@@ -219,9 +289,29 @@ export default function WorkExperiencePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
             >
-              <Card>
+              <Card className={item.is_active ? "" : "opacity-50"}>
                 <CardContent className="flex items-start justify-between p-4">
                   <div className="flex gap-3">
+                    <div className="flex flex-col">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5"
+                        disabled={index === 0 || reordering}
+                        onClick={() => handleMove(index, -1)}
+                      >
+                        <ChevronUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5"
+                        disabled={index === items.length - 1 || reordering}
+                        onClick={() => handleMove(index, 1)}
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </div>
                     {item.logo_url && (
                       <img
                         src={item.logo_url}
@@ -237,7 +327,16 @@ export default function WorkExperiencePage() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <Switch
+                        checked={item.is_active}
+                        onCheckedChange={() => handleToggleActive(item)}
+                      />
+                      <span className="text-xs text-muted-foreground">
+                        {item.is_active ? "Active" : "Hidden"}
+                      </span>
+                    </div>
                     <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -314,10 +413,6 @@ export default function WorkExperiencePage() {
             <div className="space-y-2">
               <Label>Badges (comma-separated)</Label>
               <Input value={badges} onChange={(e) => setBadges(e.target.value)} placeholder="e.g. Remote, Full-time" />
-            </div>
-            <div className="space-y-2">
-              <Label>Display Order</Label>
-              <Input type="number" value={displayOrder} onChange={(e) => setDisplayOrder(parseInt(e.target.value) || 0)} />
             </div>
           </div>
           <DialogFooter>

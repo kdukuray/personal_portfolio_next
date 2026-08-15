@@ -46,8 +46,13 @@ create table if not exists public.work_experience (
   end_date text not null default '',
   description text not null default '',
   badges text[] not null default '{}',
+  is_active boolean not null default true,
   display_order integer not null default 0
 );
+
+-- Migration for databases created before is_active existed (safe to re-run).
+alter table public.work_experience
+  add column if not exists is_active boolean not null default true;
 
 -- 4. EDUCATION TABLE
 create table if not exists public.education (
