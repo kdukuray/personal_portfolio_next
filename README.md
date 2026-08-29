@@ -55,7 +55,7 @@ This project lives in the shared **"Personal Projects Shared"** Supabase instanc
 
 Future projects sharing the instance should follow the same pattern: schema `<project>`, bucket `<project>-media`. Auth (`auth.users`) is shared across all projects in the instance.
 
-Migration history: the project first moved from `public`/`media` into a `portfolio` schema/bucket ([`supabase-migration-portfolio-schema.sql`](./supabase-migration-portfolio-schema.sql) + [`scripts/migrate-bucket.mjs`](./scripts/migrate-bucket.mjs)), then was renamed to `kalelodukuray`/`kalelodukuray-media` to match the project name ([`supabase-migration-rename-kalelodukuray.sql`](./supabase-migration-rename-kalelodukuray.sql)).
+Migration history lives in [`migrations/`](./migrations/) (see its README): the project first moved from `public`/`media` into a `portfolio` schema/bucket, then was renamed to `kalelodukuray`/`kalelodukuray-media` to match the project name. Bucket file copies were done with [`scripts/migrate-bucket.mjs`](./scripts/migrate-bucket.mjs).
 
 Notes on `work_experience`:
 
