@@ -17,8 +17,10 @@
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync } from "node:fs";
 
-const OLD_BUCKET = "media";
-const NEW_BUCKET = "portfolio-media";
+// Override with env vars to reuse for later bucket renames, e.g.:
+//   OLD_BUCKET=portfolio-media NEW_BUCKET=kalelodukuray-media ... node scripts/migrate-bucket.mjs
+const OLD_BUCKET = process.env.OLD_BUCKET ?? "media";
+const NEW_BUCKET = process.env.NEW_BUCKET ?? "portfolio-media";
 
 // Minimal .env.local parser (only need the URL; no dotenv dependency).
 const envUrl = readFileSync(new URL("../.env.local", import.meta.url), "utf8")

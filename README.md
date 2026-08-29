@@ -50,12 +50,12 @@ Content (profile, work experience, education, skills, projects, hackathons, blog
 
 This project lives in the shared **"Personal Projects Shared"** Supabase instance, which multiple projects use. To keep projects from colliding, each project owns:
 
-- **Its own Postgres schema** — this project's tables all live in the `portfolio` schema (not `public`). The Supabase clients in `src/lib/supabase/` are configured with `db: { schema: "portfolio" }`, so table names in code stay unprefixed. The schema must be listed under **Settings → API → Exposed schemas** in the Supabase dashboard, or every request 404s.
-- **Its own storage bucket** — this project uses `portfolio-media` (public bucket; see `MEDIA_BUCKET` in `src/lib/api.ts`). Storage policies: public read, authenticated write.
+- **Its own Postgres schema** — this project's tables all live in the `kalelodukuray` schema (not `public`), named after the site/project. The Supabase clients in `src/lib/supabase/` are configured with `db: { schema: "kalelodukuray" }`, so table names in code stay unprefixed. The schema must be listed under **Settings → API → Exposed schemas** in the Supabase dashboard, or every request 404s.
+- **Its own storage bucket** — this project uses `kalelodukuray-media` (public bucket; see `MEDIA_BUCKET` in `src/lib/api.ts`). Storage policies: public read, authenticated write.
 
 Future projects sharing the instance should follow the same pattern: schema `<project>`, bucket `<project>-media`. Auth (`auth.users`) is shared across all projects in the instance.
 
-The one-time migration that moved this project from `public`/`media` into `portfolio`/`portfolio-media` is in [`supabase-migration-portfolio-schema.sql`](./supabase-migration-portfolio-schema.sql) and [`scripts/migrate-bucket.mjs`](./scripts/migrate-bucket.mjs).
+Migration history: the project first moved from `public`/`media` into a `portfolio` schema/bucket ([`supabase-migration-portfolio-schema.sql`](./supabase-migration-portfolio-schema.sql) + [`scripts/migrate-bucket.mjs`](./scripts/migrate-bucket.mjs)), then was renamed to `kalelodukuray`/`kalelodukuray-media` to match the project name ([`supabase-migration-rename-kalelodukuray.sql`](./supabase-migration-rename-kalelodukuray.sql)).
 
 Notes on `work_experience`:
 

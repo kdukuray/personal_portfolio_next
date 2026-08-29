@@ -832,7 +832,7 @@ export async function deleteBlogPost(id: string): Promise<void> {
 // ─────────────────────────────────────────────
 
 /** Storage bucket for this project inside the shared Supabase instance. */
-const MEDIA_BUCKET = "portfolio-media";
+const MEDIA_BUCKET = "kalelodukuray-media";
 
 /**
  * Uploads a file to Supabase storage in the project's media bucket.
