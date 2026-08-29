@@ -831,8 +831,11 @@ export async function deleteBlogPost(id: string): Promise<void> {
 // Media / Storage
 // ─────────────────────────────────────────────
 
+/** Storage bucket for this project inside the shared Supabase instance. */
+const MEDIA_BUCKET = "portfolio-media";
+
 /**
- * Uploads a file to Supabase storage in the "media" bucket.
+ * Uploads a file to Supabase storage in the project's media bucket.
  * @param file - The File to upload.
  * @param folder - Optional subfolder within the bucket (e.g. "blog", "avatars").
  * @returns The public URL of the uploaded file.
@@ -849,7 +852,7 @@ export async function uploadMedia(
     : `${timestamp}_${sanitizedName}`;
 
   const { error } = await supabase.storage
-    .from("media")
+    .from(MEDIA_BUCKET)
     .upload(filePath, file, {
       cacheControl: "3600",
       upsert: false,
@@ -858,7 +861,7 @@ export async function uploadMedia(
 
   const {
     data: { publicUrl },
-  } = supabase.storage.from("media").getPublicUrl(filePath);
+  } = supabase.storage.from(MEDIA_BUCKET).getPublicUrl(filePath);
 
   return publicUrl;
 }

@@ -46,6 +46,17 @@ Built with next.js, [shadcn/ui](https://ui.shadcn.com/), and [magic ui](https://
 
 Content (profile, work experience, education, skills, projects, hackathons, blog) lives in Supabase Postgres; the schema is in [`supabase-setup.sql`](./supabase-setup.sql). Run that file in the Supabase SQL editor to create or migrate the tables — it is idempotent.
 
+## Shared instance & namespacing
+
+This project lives in the shared **"Personal Projects Shared"** Supabase instance, which multiple projects use. To keep projects from colliding, each project owns:
+
+- **Its own Postgres schema** — this project's tables all live in the `portfolio` schema (not `public`). The Supabase clients in `src/lib/supabase/` are configured with `db: { schema: "portfolio" }`, so table names in code stay unprefixed. The schema must be listed under **Settings → API → Exposed schemas** in the Supabase dashboard, or every request 404s.
+- **Its own storage bucket** — this project uses `portfolio-media` (public bucket; see `MEDIA_BUCKET` in `src/lib/api.ts`). Storage policies: public read, authenticated write.
+
+Future projects sharing the instance should follow the same pattern: schema `<project>`, bucket `<project>-media`. Auth (`auth.users`) is shared across all projects in the instance.
+
+The one-time migration that moved this project from `public`/`media` into `portfolio`/`portfolio-media` is in [`supabase-migration-portfolio-schema.sql`](./supabase-migration-portfolio-schema.sql) and [`scripts/migrate-bucket.mjs`](./scripts/migrate-bucket.mjs).
+
 Notes on `work_experience`:
 
 - `display_order` — position on the homepage. Managed from the dashboard's Work page via the up/down arrows; orders are automatically kept as a clean `0..n-1` sequence.
